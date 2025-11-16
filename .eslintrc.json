@@ -1,0 +1,18 @@
+{
+  "extends": ["next/core-web-vitals", "next/typescript"],
+  "rules": {
+    "semi": "off",
+    "quotes": "off",
+    "indent": "off",
+    "object-curly-spacing": "off",
+    "space-before-function-paren": "off",
+    "comma-dangle": "off",
+    "require-jsdoc": "off",
+    "valid-jsdoc": "off",
+    "max-len": "off",
+    "camelcase": "off",
+    "arrow-parens": "off",
+    "@typescript-eslint/no-explicit-any": "off",
+    "@typescript-eslint/no-unused-vars": "warn"
+  }
+}
