@@ -32,10 +32,21 @@ export function NicknameModal({ userId, onComplete }: NicknameModalProps) {
           .from('profiles')
           .select('nickname')
           .eq('nickname', nickname)
-          .single()
+          .maybeSingle()
 
-        setIsAvailable(!data && !error)
+        // PGRST116 means "no rows found" - this is GOOD (nickname available)
+        if (error && error.code !== 'PGRST116') {
+          console.error('Database error checking nickname:', error)
+          setError(`Permission error: ${error.message}. Please check your database configuration.`)
+          setIsAvailable(null)
+          return
+        }
+
+        // Available if no data found (nickname not taken)
+        // PGRST116 error means 0 rows = available
+        setIsAvailable(!data)
       } catch (err) {
+        console.error('Nickname check exception:', err)
         setIsAvailable(false)
       } finally {
         setIsChecking(false)

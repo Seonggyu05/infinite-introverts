@@ -33,13 +33,13 @@ export default function CanvasPage() {
       setUser(user)
 
       // Check if profile exists
-      const { data: profile } = await supabase
+      const { data: profile, error } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', user.id)
-        .single()
+        .maybeSingle()
 
-      if (!profile) {
+      if (!profile || error) {
         setShowNicknameModal(true)
       } else {
         setProfile(profile)
@@ -80,7 +80,7 @@ export default function CanvasPage() {
   }
 
   return (
-    <div className="h-screen w-screen bg-gray-50">
+    <div className="fixed inset-0 bg-gray-50">
       {/* Header */}
       <div className="absolute top-0 left-0 right-0 z-10 bg-white/90 backdrop-blur-sm border-b border-gray-200 px-6 py-3 flex items-center justify-between">
         <div>
@@ -100,10 +100,13 @@ export default function CanvasPage() {
       </div>
 
       {/* Canvas */}
-      <div className="w-full h-full pt-16">
-        <InfiniteCanvas>
-          {/* Avatar and other canvas elements will go here in Phase 3 */}
-        </InfiniteCanvas>
+      <div className="absolute inset-0 pt-16">
+        {profile && (
+          <InfiniteCanvas
+            currentUserId={user.id}
+            currentUserNickname={profile.nickname}
+          />
+        )}
       </div>
     </div>
   )

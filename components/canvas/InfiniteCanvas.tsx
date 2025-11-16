@@ -1,14 +1,16 @@
 'use client'
 
-import { Stage, Layer, Rect, Line } from 'react-konva'
+import { Stage, Layer, Line } from 'react-konva'
 import { useEffect, useRef, useState } from 'react'
 import { CANVAS } from '@/lib/constants/canvas'
+import { AvatarLayer } from './AvatarLayer'
 
 interface InfiniteCanvasProps {
-  children?: React.ReactNode
+  currentUserId: string
+  currentUserNickname: string
 }
 
-export function InfiniteCanvas({ children }: InfiniteCanvasProps) {
+export function InfiniteCanvas({ currentUserId, currentUserNickname }: InfiniteCanvasProps) {
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 })
   const [viewport, setViewport] = useState({
     x: 0,
@@ -165,7 +167,10 @@ export function InfiniteCanvas({ children }: InfiniteCanvasProps) {
 
         {/* Content layer */}
         <Layer>
-          {children}
+          <AvatarLayer
+            currentUserId={currentUserId}
+            currentUserNickname={currentUserNickname}
+          />
         </Layer>
       </Stage>
 
