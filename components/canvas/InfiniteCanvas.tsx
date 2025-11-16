@@ -162,7 +162,7 @@ export function InfiniteCanvas({ currentUserId, currentUserNickname }: InfiniteC
       >
         <Layer>
           {/* Grid background */}
-          {renderGrid()}
+          {/* {renderGrid()} */}
         </Layer>
 
         {/* Content layer */}

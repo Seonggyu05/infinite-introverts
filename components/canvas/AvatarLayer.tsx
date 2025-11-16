@@ -178,12 +178,7 @@ export function AvatarLayer({ currentUserId, currentUserNickname }: AvatarLayerP
     }
   }, [supabase, currentUserId])
 
-  // Filter only active users (online in last 5 minutes)
-  const activeProfiles = profiles.filter(p => {
-    const lastActive = new Date(p.last_active_at)
-    const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000)
-    return lastActive > fiveMinutesAgo
-  })
+  const activeProfiles = profiles;
 
   return (
     <>
