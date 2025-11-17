@@ -39,6 +39,8 @@ export default function CanvasPage() {
         .eq('id', user.id)
         .maybeSingle()
 
+      console.log('Profile fetch result:', { profile, error })
+
       if (!profile || error) {
         setShowNicknameModal(true)
       } else {
@@ -80,7 +82,7 @@ export default function CanvasPage() {
   }
 
   return (
-    <div className="fixed inset-0 bg-gray-50">
+    <div className="fixed inset-0 bg-white">
       {/* Header */}
       <div className="absolute top-0 left-0 right-0 z-10 bg-white/90 backdrop-blur-sm border-b border-gray-200 px-6 py-3 flex items-center justify-between">
         <div>

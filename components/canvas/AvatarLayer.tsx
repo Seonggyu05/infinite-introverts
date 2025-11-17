@@ -32,11 +32,13 @@ export function AvatarLayer({ currentUserId, currentUserNickname }: AvatarLayerP
         .select('id, nickname, position_x, position_y, last_active_at')
 
       if (data && !error) {
+        console.log('Fetched profiles:', data)
         setProfiles(data)
 
         // Set current user's position
         const currentUser = data.find(p => p.id === currentUserId)
         if (currentUser) {
+          console.log('Current user profile:', currentUser)
           setCurrentUserPosition({
             x: currentUser.position_x,
             y: currentUser.position_y,
@@ -178,7 +180,13 @@ export function AvatarLayer({ currentUserId, currentUserNickname }: AvatarLayerP
     }
   }, [supabase, currentUserId])
 
-  const activeProfiles = profiles;
+  const activeProfiles = profiles.filter(p => {
+    if (!p.last_active_at) return false
+    const lastActive = new Date(p.last_active_at).getTime()
+    const now = new Date().getTime()
+    // Render if active in the last 5 minutes
+    return now - lastActive < 5 * 60 * 1000
+  });
 
   return (
     <>
@@ -188,6 +196,13 @@ export function AvatarLayer({ currentUserId, currentUserNickname }: AvatarLayerP
           currentUserPosition :
           { x: profile.position_x, y: profile.position_y }
 
+        console.log('StickFigure props:', {
+          key: profile.id,
+          x: position.x,
+          y: position.y,
+          nickname: profile.nickname,
+          isCurrentUser,
+        })
         return (
           <StickFigure
             key={profile.id}
