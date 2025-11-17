@@ -4,13 +4,28 @@ import { Stage, Layer, Line } from 'react-konva'
 import { useEffect, useRef, useState } from 'react'
 import { CANVAS } from '@/lib/constants/canvas'
 import { AvatarLayer } from './AvatarLayer'
+import { ThoughtLayer } from '../thoughts/ThoughtLayer'
+import { ChatConnectors } from '../chat/ChatConnectors'
+
+interface Profile {
+  id: string
+  position_x: number
+  position_y: number
+}
 
 interface InfiniteCanvasProps {
   currentUserId: string
   currentUserNickname: string
+  onCurrentPositionChange: (position: { x: number; y: number }) => void
+  profiles: Profile[]
 }
 
-export function InfiniteCanvas({ currentUserId, currentUserNickname }: InfiniteCanvasProps) {
+export function InfiniteCanvas({
+  currentUserId,
+  currentUserNickname,
+  onCurrentPositionChange,
+  profiles
+}: InfiniteCanvasProps) {
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 })
   const [viewport, setViewport] = useState({
     x: 0,
@@ -19,6 +34,13 @@ export function InfiniteCanvas({ currentUserId, currentUserNickname }: InfiniteC
   })
   const stageRef = useRef<any>(null)
   const containerRef = useRef<HTMLDivElement>(null)
+
+  // Update current position for parent component
+  useEffect(() => {
+    const centerX = -viewport.x / viewport.scale
+    const centerY = -viewport.y / viewport.scale
+    onCurrentPositionChange({ x: centerX, y: centerY })
+  }, [viewport.x, viewport.y, viewport.scale, onCurrentPositionChange])
 
   // Handle window resize
   useEffect(() => {
@@ -167,6 +189,13 @@ export function InfiniteCanvas({ currentUserId, currentUserNickname }: InfiniteC
 
         {/* Content layer */}
         <Layer>
+          {/* Chat connector lines */}
+          <ChatConnectors currentUserId={currentUserId} profiles={profiles} />
+
+          {/* Thought bubbles */}
+          <ThoughtLayer currentUserId={currentUserId} />
+
+          {/* Avatars */}
           <AvatarLayer
             currentUserId={currentUserId}
             currentUserNickname={currentUserNickname}

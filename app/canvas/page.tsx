@@ -2,9 +2,14 @@
 
 import dynamic from 'next/dynamic'
 import { createClient } from '@/lib/supabase/client'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { NicknameModal } from '@/components/auth/NicknameModal'
+import { ThoughtInput } from '@/components/thoughts/ThoughtInput'
+import { OpenChat } from '@/components/chat/OpenChat'
+import { PrivateChatPanel } from '@/components/chat/PrivateChatPanel'
+import { CountdownTimer } from '@/components/reset/CountdownTimer'
+import { AdminPanel } from '@/components/admin/AdminPanel'
 
 // Dynamic import to prevent SSR issues with Konva
 const InfiniteCanvas = dynamic(
@@ -17,6 +22,8 @@ export default function CanvasPage() {
   const [profile, setProfile] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [showNicknameModal, setShowNicknameModal] = useState(false)
+  const [currentPosition, setCurrentPosition] = useState({ x: 0, y: 0 })
+  const [profiles, setProfiles] = useState<any[]>([])
   const supabase = createClient()
   const router = useRouter()
 
@@ -39,12 +46,11 @@ export default function CanvasPage() {
         .eq('id', user.id)
         .maybeSingle()
 
-      console.log('Profile fetch result:', { profile, error })
-
       if (!profile || error) {
         setShowNicknameModal(true)
       } else {
         setProfile(profile)
+        setCurrentPosition({ x: profile.position_x, y: profile.position_y })
       }
 
       setLoading(false)
@@ -53,10 +59,49 @@ export default function CanvasPage() {
     checkAuth()
   }, [supabase, router])
 
+  // Fetch profiles for chat connectors
+  useEffect(() => {
+    const fetchProfiles = async () => {
+      const { data } = await supabase
+        .from('profiles')
+        .select('id, position_x, position_y')
+
+      if (data) {
+        setProfiles(data)
+      }
+    }
+
+    fetchProfiles()
+
+    // Subscribe to profile updates
+    const channel = supabase
+      .channel('profile-positions')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'profiles',
+        },
+        () => {
+          fetchProfiles()
+        }
+      )
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(channel)
+    }
+  }, [supabase])
+
   const handleLogout = async () => {
     await supabase.auth.signOut()
     router.push('/')
   }
+
+  const handlePositionChange = useCallback((position: { x: number; y: number }) => {
+    setCurrentPosition(position)
+  }, [])
 
   if (loading) {
     return (
@@ -83,33 +128,50 @@ export default function CanvasPage() {
 
   return (
     <div className="fixed inset-0 bg-white">
-      {/* Header */}
-      <div className="absolute top-0 left-0 right-0 z-10 bg-white/90 backdrop-blur-sm border-b border-gray-200 px-6 py-3 flex items-center justify-between">
-        <div>
-          <h1 className="text-xl font-bold text-gray-900">Infinite Introverts</h1>
-          {profile && (
-            <p className="text-sm text-gray-600">
-              Welcome, <span className="font-medium">{profile.nickname}</span>
-            </p>
-          )}
-        </div>
-        <button
-          onClick={handleLogout}
-          className="px-4 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors font-medium"
-        >
-          Logout
-        </button>
-      </div>
-
       {/* Canvas */}
-      <div className="absolute inset-0 pt-16">
+      <div className="absolute inset-0">
         {profile && (
           <InfiniteCanvas
             currentUserId={user.id}
             currentUserNickname={profile.nickname}
+            onCurrentPositionChange={handlePositionChange}
+            profiles={profiles}
           />
         )}
       </div>
+
+      {/* Countdown Timer */}
+      <CountdownTimer />
+
+      {/* Thought Input */}
+      {profile && (
+        <ThoughtInput
+          userId={user.id}
+          currentPosition={currentPosition}
+        />
+      )}
+
+      {/* Open Chat */}
+      {profile && (
+        <OpenChat
+          currentUserId={user.id}
+          isAdmin={profile.is_admin || false}
+        />
+      )}
+
+      {/* Private Chat Panel */}
+      {profile && <PrivateChatPanel currentUserId={user.id} />}
+
+      {/* Admin Panel (only visible to admins) */}
+      {profile && profile.is_admin && <AdminPanel currentUserId={user.id} />}
+
+      {/* Logout button */}
+      <button
+        onClick={handleLogout}
+        className="fixed top-4 right-4 px-4 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors font-medium text-sm shadow-lg z-40"
+      >
+        Logout
+      </button>
     </div>
   )
 }

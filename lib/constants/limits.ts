@@ -26,6 +26,12 @@ export const LIMITS = {
   },
 } as const
 
+// Convenience exports for backwards compatibility
+export const THOUGHT_MAX_CHARS = LIMITS.THOUGHT.MAX_LENGTH
+export const MAX_THOUGHTS_PER_USER = LIMITS.THOUGHT.MAX_PER_USER
+export const THOUGHT_RATE_LIMIT_MS = LIMITS.THOUGHT.RATE_LIMIT_SECONDS * 1000
+export const COMMENT_MAX_CHARS = LIMITS.COMMENT.MAX_LENGTH
+
 /**
  * Count words in text (approximate)
  */
